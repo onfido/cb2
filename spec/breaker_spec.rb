@@ -7,14 +7,6 @@ describe CB2::Breaker do
       allow:    false)
   end
 
-  before do
-    # allow(Redis).to receive(:new).and_return(MockRedis.new)
-  end
-
-  after do
-    # allow(Redis).to receive(:new).and_call_original
-  end
-
   describe "#run" do
     it "raises when the breaker is open" do
       assert_raises(CB2::BreakerOpen) do
@@ -27,17 +19,17 @@ describe CB2::Breaker do
       assert_equal 42, breaker.run { 42 }
     end
 
-    context "breaker has RuntimeErrors whitelisted" do
+    context "breaker has RuntimeErrors ignored" do
       let(:breaker) do
         CB2::Breaker.new(service: "aws",
           duration: 60,
           threshold: 5,
           reenable_after: 600,
           redis: MockRedis.new,
-          whitelist: [RuntimeError])
+          ignore: [RuntimeError])
       end
 
-      it "ignores whitelisted error classes" do
+      it "ignores the error classes specified by the user" do
         6.times {
           begin
             breaker.run { raise 'sample-runtime-error' }
@@ -47,7 +39,7 @@ describe CB2::Breaker do
         assert_equal 42, breaker.run { 42 }
       end
 
-      it "does not ignore errors not whitelisted" do
+      it "processes errors not ignored" do
         5.times {
           begin
             breaker.run { raise StandardError.new('sample-standard-error') }
