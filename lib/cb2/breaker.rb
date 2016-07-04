@@ -4,6 +4,7 @@ class CB2::Breaker
   def initialize(options)
     @service  = options[:service] || "default"
     @strategy = initialize_strategy(options)
+    @whitelist = if options[:whitelist] then options[:whitelist] else [] end
   end
 
   def run
@@ -16,7 +17,7 @@ class CB2::Breaker
       ret = yield
       process_success
     rescue => e
-      process_error
+      if (!(@whitelist.any? { |klass| e.is_a?(klass) })) then process_error end
       raise e
     end
 

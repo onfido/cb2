@@ -4,7 +4,8 @@ Bundler.setup
 
 require "timecop"
 require "cb2"
-
+require "minitest"
+require "mock_redis"
 # establish a Redis connection to the default server (localhost:6379)
 Redis.new
 

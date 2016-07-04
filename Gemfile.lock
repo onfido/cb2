@@ -8,6 +8,8 @@ GEM
   remote: http://rubygems.org/
   specs:
     diff-lcs (1.2.5)
+    minitest (5.0.8)
+    mock_redis (0.16.1)
     rake (10.3.2)
     redis (3.2.0)
     rr (1.1.2)
@@ -30,7 +32,12 @@ PLATFORMS
 
 DEPENDENCIES
   cb2!
+  minitest (~> 5.0.5)
+  mock_redis (~> 0.16.1)
   rake (> 0)
   rr (~> 1.1)
   rspec (~> 3.1)
   timecop (~> 0.7)
+
+BUNDLED WITH
+   1.12.5
