@@ -18,6 +18,40 @@ describe CB2::Breaker do
       breaker.strategy.allow = true
       assert_equal 42, breaker.run { 42 }
     end
+
+    context "breaker has RuntimeErrors ignored" do
+      let(:breaker) do
+        CB2::Breaker.new(service: "aws",
+          duration: 60,
+          threshold: 5,
+          reenable_after: 600,
+          redis: MockRedis.new,
+          ignore: [RuntimeError])
+      end
+
+      it "ignores the error classes specified by the user" do
+        6.times {
+          begin
+            breaker.run { raise 'sample-runtime-error' }
+          rescue
+          end
+        }
+        assert_equal 42, breaker.run { 42 }
+      end
+
+      it "processes errors not ignored" do
+        5.times {
+          begin
+            breaker.run { raise StandardError.new('sample-standard-error') }
+          rescue
+          end
+        }
+
+        assert_raises(CB2::BreakerOpen) do
+          breaker.run { 2 }
+        end
+      end
+    end
   end
 
   describe "#open?" do

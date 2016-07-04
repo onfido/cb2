@@ -4,6 +4,7 @@ class CB2::Breaker
   def initialize(options)
     @service  = options[:service] || "default"
     @strategy = initialize_strategy(options)
+    @ignore = options[:ignore] || []
   end
 
   def run
@@ -16,7 +17,7 @@ class CB2::Breaker
       ret = yield
       process_success
     rescue => e
-      process_error
+      process_error if should_process?(e)
       raise e
     end
 
@@ -59,5 +60,9 @@ class CB2::Breaker
     when "stub"
       CB2::Stub.new(strategy_options)
     end
+  end
+
+  def should_process?(error)
+    return !(@ignore.any? { |klass| error.is_a?(klass) })
   end
 end
