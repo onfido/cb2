@@ -45,6 +45,45 @@ rescue CB2::BreakerOpen
 end
 ```
 
+### Custom handling errors
+
+When instantiating a circuit breaker, you may also specify error classes that should be ignored.
+
+These errors will still be raised while the circuit is closed, but will not open the circuit.
+
+```ruby
+breaker = CB2::Breaker.new(
+  service: "aws"  
+  duration: 60,   
+  threshold: 5,   
+  reenable_after: 600
+  redis: Redis.new,
+  ignore: [RuntimeError]
+)
+```
+
+You may also want to specify a function to handle errors.
+
+It should expect the error, and the post-handler function as parameters. By calling the post-handler function with the error, the error will increase the fail rate if it is not being ignored and will be raised when the circuit is closed.
+
+```ruby
+breaker = CB2::Breaker.new(
+  service: "aws"  
+  duration: 60,   
+  threshold: 5,   
+  reenable_after: 600
+  redis: Redis.new,
+  ignore: [RuntimeError],
+  error_handler: Proc.new { |e, &h| 
+    if e.is_a? (TypeError) then puts "This is a type error." else h(e) end
+  }
+)
+```
+
+In the example above, a `TypeError` will not be raise nor will it open the circuit.
+A `RuntimeError` will be raised when the circuit is closed, but will not open the circuit.
+The circuit will behave as usual for any other error.
+
 ### Circuit breaker stub
 
 CB2 can also run as a stub. Use it to aid testing, simulations and gradual rollouts:
