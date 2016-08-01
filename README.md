@@ -45,6 +45,21 @@ rescue CB2::BreakerOpen
 end
 ```
 
+### Custom-Handling Errors
+You may not want certains errors to count towards the circuit opening.
+
+To do so, add an entry to the hash table in the `handle` options, where the key is the class of the error to be handled, and the value is a function that accepts an error as a parameter, and returns `true` if it should be processed, `false` otherwise.
+
+```ruby
+breaker = CB2::Breaker.new(
+  service: "aws"       # identify each circuit breaker individually
+  duration: 60,        # keep track of errors over a 1 min window
+  threshold: 5,        # open the circuit breaker when error rate is at 5%
+  reenable_after: 600, # keep it open for 10 mins
+  redis: Redis.new,    # redis connection it should use to keep state
+  handle: { RuntimeError => Proc.new { |e| e.message == 'foo' } })
+```
+
 ### Circuit breaker stub
 
 CB2 can also run as a stub. Use it to aid testing, simulations and gradual rollouts:
